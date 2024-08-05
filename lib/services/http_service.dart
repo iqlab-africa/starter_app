@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:starter_app/models/VideoBotResult.dart';
 
@@ -23,7 +22,8 @@ class HttpService {
       required this.keyPrefix,
       required this.robocorpUrl,
       required this.webBackendUrl,
-      required this.client, required this.headers});
+      required this.client,
+      required this.headers});
 
   final Map<String, String> headers;
 
@@ -37,43 +37,38 @@ curl --request GET "https://cloud.robocorp.com/api/v1/workspaces/fbec8d03-198f-4
  */
   Future<String?> startBot(String processId) async {
     pp('$mm startBot ... processId: $processId');
-    String? resultId;
+    String? processRunId;
     var mUrl = '${robocorpUrl}processes/$processId/process-runs';
     pp('$mm calling $mUrl ...');
     var resp = await client.post(Uri.parse(mUrl), headers: headers);
     pp('$mm startBot, statusCode: ${resp.statusCode} \n ${resp.body}');
     if (resp.statusCode == 200) {
       var m = jsonDecode(resp.body);
-      pp('$mm resultId: ${m['id']}');
+      pp('$mm processRunId: ${m['id']}');
       var started = m['started'] as bool;
       if (started) {
-        resultId = m['id'];
-        pp('$mm  videoBot has started, processId: $resultId');
+        processRunId = m['id'];
+        pp('$mm  videoBot has started, processRunId: $processRunId');
       } else {
         throw Exception('Bot failed to start');
       }
     }
-    return resultId;
+    return processRunId;
   }
-  Future<String?> stopBot(String processId) async {
-    pp('$mm stopBot ... processId: $processId');
-    // String? resultId;
-    // var mUrl = '${robocorpUrl}processes/$processId/process-runs';
-    // pp('$mm calling $mUrl ...');
-    // var resp = await client.post(Uri.parse(mUrl), headers: headers);
-    // pp('$mm startBot, statusCode: ${resp.statusCode} \n ${resp.body}');
-    // if (resp.statusCode == 200) {
-    //   var m = jsonDecode(resp.body);
-    //   pp('$mm resultId: ${m['id']}');
-    //   var started = m['started'] as bool;
-    //   if (started) {
-    //     resultId = m['id'];
-    //     pp('$mm  videoBot has started, processId: $resultId');
-    //   } else {
-    //     throw Exception('Bot failed to start');
-    //   }
-    // }
-    return null;
+
+  Future<String?> stopBot(String processRunId) async {
+    pp('$mm stopBot ... processRunId: $processRunId');
+
+    String? resultId;
+    var mUrl = '${robocorpUrl}process-runs/$processRunId/stop';
+    var body = {
+      'set_remaining_work_items_as_done': true,
+      'terminate_ongoing_activity_runs': true,
+    };
+    pp('$mm calling $mUrl ...');
+    var resp = await client.post(Uri.parse(mUrl), headers: headers, body: body);
+    pp('$mm stopBot, statusCode: ${resp.statusCode} \n ${resp.body}');
+    return resp.body;
   }
 
   Future<ProcessRun?> getProcessRun(String processRunId) async {

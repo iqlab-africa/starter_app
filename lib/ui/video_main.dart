@@ -33,7 +33,6 @@ class _VideoListState extends State<VideoList> {
   HttpService httpService = GetIt.instance<HttpService>();
   static const mm = '🌸 VideoList 🌸 ';
   static const processName = 'VideoSearchProcess';
-
   String? processId, processRunId;
   ProcessRun? processRun;
   bool busy = false;
@@ -96,7 +95,7 @@ class _VideoListState extends State<VideoList> {
     if (isBotRunning) {
       pp('$mm Bot is already running');
       showToast(
-          message: 'VideoBoi is still running the last search request',
+          message: 'VideoBoi is still running the last search request. \n\nPlease wait.',
           context: context);
       return;
     }
@@ -106,13 +105,13 @@ class _VideoListState extends State<VideoList> {
     });
     if (processId != null) {
       processRunId = await httpService.startBot(processId!);
-      pp('$mm videoBot started:  🍎$processRunId');
+      pp('$mm videoBot started:  processRunId: 🍎$processRunId');
       _poll();
     }
   }
 
   Future stopBot() async {
-    httpService.stopBot(processId!);
+    httpService.stopBot(processRunId!);
     setState(() {
       isBotRunning = false;
     });
@@ -376,11 +375,14 @@ class _VideoListState extends State<VideoList> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const [
+        items: [
           BottomNavigationBarItem(
-              icon: Icon(Icons.close, color: Colors.red), label: 'Stop Bot'),
+              icon: Icon(Icons.close,
+                  color: processRunId == null ? Colors.grey : Colors.red),
+              label: 'Stop Bot'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.settings, color: Colors.orange),
+              icon: Icon(Icons.settings,
+                  color: isBotRunning ? Colors.grey : Colors.orange),
               label: 'Start Bot'),
         ],
         onTap: (index) {
@@ -396,6 +398,9 @@ class _VideoListState extends State<VideoList> {
       ),
     );
   }
+
+  var list1 = <BottomNavigationBarItem>[];
+  var list2 = <BottomNavigationBarItem>[];
 }
 
 class VideoBotList extends StatelessWidget {
