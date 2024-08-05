@@ -23,6 +23,7 @@ import '../util/prefs.dart';
 import '../util/util.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+/// This is the main screen of the VideoBot app. It manges a list of videos and starts and stops a video search bot
 class VideoList extends StatefulWidget {
   const VideoList({super.key});
 
@@ -32,7 +33,7 @@ class VideoList extends StatefulWidget {
 
 class _VideoListState extends State<VideoList> {
   HttpService httpService = GetIt.instance<HttpService>();
-  static const mm = '🌸 VideoList 🌸 ';
+  static const mm = '🌸🌸 VideoList 🌸 ';
   static const processName = 'VideoSearchProcess';
   String? processId, processRunId;
   ProcessRun? processRun;
