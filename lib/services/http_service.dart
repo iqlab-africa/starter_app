@@ -41,7 +41,7 @@ curl --request GET "https://cloud.robocorp.com/api/v1/workspaces/fbec8d03-198f-4
     var mUrl = '${robocorpUrl}processes/$processId/process-runs';
     pp('$mm calling $mUrl ...');
     var resp = await client.post(Uri.parse(mUrl), headers: headers);
-    pp('$mm startBot, statusCode: ${resp.statusCode} \n ${resp.body}');
+    pp('\n\n\n$mm startBot, statusCode: ${resp.statusCode} \n ${resp.body} \n\n');
     if (resp.statusCode == 200) {
       var m = jsonDecode(resp.body);
       pp('$mm processRunId: ${m['id']}');
@@ -58,21 +58,28 @@ curl --request GET "https://cloud.robocorp.com/api/v1/workspaces/fbec8d03-198f-4
 
   Future<String?> stopBot(String processRunId) async {
     pp('$mm stopBot ... processRunId: $processRunId');
+    try {
+      String? resultId;
+      var mUrl = '${robocorpUrl}process-runs/$processRunId/stop';
 
-    String? resultId;
-    var mUrl = '${robocorpUrl}process-runs/$processRunId/stop';
-    var body = {
-      'set_remaining_work_items_as_done': true,
-      'terminate_ongoing_activity_runs': true,
-    };
-    pp('$mm calling $mUrl ...');
-    var resp = await client.post(Uri.parse(mUrl), headers: headers, body: body);
-    pp('$mm stopBot, statusCode: ${resp.statusCode} \n ${resp.body}');
-    return resp.body;
+      final body = jsonEncode({
+        'set_remaining_work_items_as_done': true,
+        'terminate_ongoing_activity_runs': true,
+      });
+
+      pp('$mm calling $mUrl ...');
+      var resp =
+          await client.post(Uri.parse(mUrl), headers: headers, body: body);
+      pp('$mm stopBot done, statusCode: ${resp.statusCode} \n ${resp.body}');
+      return resp.body;
+    } catch (e, s) {
+      pp('$mm $e \n $s');
+    }
+    return null;
   }
 
   Future<ProcessRun?> getProcessRun(String processRunId) async {
-    pp('$mm getProcessRun ... processRunId: $processRunId');
+    pp('$mm getProcessRun ..... processRunId: $processRunId');
 
     ProcessRun? processRun;
     var mUrl = '${robocorpUrl}process-runs/$processRunId';
@@ -219,3 +226,4 @@ curl --request GET "https://cloud.robocorp.com/api/v1/workspaces/fbec8d03-198f-4
     return processes;
   }
 }
+

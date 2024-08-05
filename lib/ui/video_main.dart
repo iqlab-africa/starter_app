@@ -21,6 +21,7 @@ import '../models/process_run.dart';
 import '../util/gaps.dart';
 import '../util/prefs.dart';
 import '../util/util.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class VideoList extends StatefulWidget {
   const VideoList({super.key});
@@ -49,6 +50,11 @@ class _VideoListState extends State<VideoList> {
 
   Future _getVideoBotResults() async {
     pp('\n$mm getVideoBotResults from web backend ( 🥦🥦 with Firestore) ...');
+    await _runRequest();
+    _startBot();
+  }
+
+  Future<void> _runRequest() async {
     setState(() {
       isBotRunning = true;
     });
@@ -60,38 +66,25 @@ class _VideoListState extends State<VideoList> {
         pp('$mm title: ${v.title}  💜💜💜link: ${v.link}');
       }
       pp('\n\n$mm ... video results found:  💜 ${videoBotResults.length} videos  💜\n');
-      setState(() {
-        isBotRunning = false;
-      });
-      if (runCount == 0) {
-        runCount++;
-        _getProcesses();
-        return;
-      }
+
     } catch (e, s) {
       pp('$mm ERROR 👿 $e 👿\n 👿$s 👿');
       if (mounted) {
         showErrorDialog(context, '$e');
       }
     }
+    setState(() {
+      isBotRunning = false;
+    });
   }
 
   Processes? processes;
 
-  Future _getProcesses() async {
-    pp('$mm ... getting processes ...');
-    processes = await httpService.listProcesses();
-    for (var p in processes!.data!) {
-      pp('$mm _getProcesses: process: ${p.toJson()}');
-      if (p.name == processName) {
-        processId = p.id;
-        await _startBot();
-      }
-    }
-  }
 
   Future<void> _startBot() async {
-    pp('\n\n$mm _startBot: process:  🍎$processId)}');
+    processId = dotenv.env['PROCESS_ID'];
+    pp('\n\n$mm _startBot: process:  🍎🍎🍎🍎$processId isBotRunning: $isBotRunning');
+
     if (isBotRunning) {
       pp('$mm Bot is already running');
       showToast(
@@ -112,7 +105,9 @@ class _VideoListState extends State<VideoList> {
 
   Future stopBot() async {
     httpService.stopBot(processRunId!);
+    _stopTimer();
     setState(() {
+      processRunId = null;
       isBotRunning = false;
     });
     pp('$mm VideoBot stopped ...');
@@ -133,7 +128,7 @@ class _VideoListState extends State<VideoList> {
         setState(() {
           isBotRunning = false;
         });
-        _getVideoBotResults();
+        _runRequest();
       } else {
         pp('\n\n$mm videoBot is still running ......  🔵 🔵 ${processRun?.state} 🔵 🔵 \n');
       }
@@ -168,7 +163,7 @@ class _VideoListState extends State<VideoList> {
     pp('$mm videoBot artifacts found: ${stepRunArtifacts!.data!.length}  things ... '
         '🔵 🔵 will get videos from backend! ');
     if (stepRunArtifacts!.data!.isNotEmpty) {
-      _getVideoBotResults();
+      _runRequest();
     }
   }
 
@@ -378,11 +373,11 @@ class _VideoListState extends State<VideoList> {
         items: [
           BottomNavigationBarItem(
               icon: Icon(Icons.close,
-                  color: processRunId == null ? Colors.grey : Colors.red),
+                  color: processRunId == null ? Colors.grey.shade700 : Colors.red),
               label: 'Stop Bot'),
           BottomNavigationBarItem(
               icon: Icon(Icons.settings,
-                  color: isBotRunning ? Colors.grey : Colors.orange),
+                  color: isBotRunning ? Colors.grey.shade700 : Colors.orange),
               label: 'Start Bot'),
         ],
         onTap: (index) {
