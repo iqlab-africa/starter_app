@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:badges/badges.dart' as bd;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:starter_app/models/StepRunArtifacts.dart';
@@ -21,7 +22,6 @@ import '../models/process_run.dart';
 import '../util/gaps.dart';
 import '../util/prefs.dart';
 import '../util/util.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// This is the main screen of the VideoBot app. It manges a list of videos and starts and stops a video search bot
 class VideoList extends StatefulWidget {
@@ -67,7 +67,6 @@ class _VideoListState extends State<VideoList> {
         pp('$mm title: ${v.title}  💜💜💜link: ${v.link}');
       }
       pp('\n\n$mm ... video results found:  💜 ${videoBotResults.length} videos  💜\n');
-
     } catch (e, s) {
       pp('$mm ERROR 👿 $e 👿\n 👿$s 👿');
       if (mounted) {
@@ -81,7 +80,6 @@ class _VideoListState extends State<VideoList> {
 
   Processes? processes;
 
-
   Future<void> _startBot() async {
     processId = dotenv.env['PROCESS_ID'];
     pp('\n\n$mm _startBot: process:  🍎🍎🍎🍎$processId isBotRunning: $isBotRunning');
@@ -89,7 +87,8 @@ class _VideoListState extends State<VideoList> {
     if (isBotRunning) {
       pp('$mm Bot is already running');
       showToast(
-          message: 'VideoBoi is still running the last search request. \n\nPlease wait.',
+          message:
+              'VideoBoi is still running the last search request. \n\nPlease wait.',
           context: context);
       return;
     }
@@ -374,7 +373,8 @@ class _VideoListState extends State<VideoList> {
         items: [
           BottomNavigationBarItem(
               icon: Icon(Icons.close,
-                  color: processRunId == null ? Colors.grey.shade700 : Colors.red),
+                  color:
+                      processRunId == null ? Colors.grey.shade700 : Colors.red),
               label: 'Stop Bot'),
           BottomNavigationBarItem(
               icon: Icon(Icons.settings,
@@ -432,17 +432,34 @@ class VideoBotList extends StatelessWidget {
                       vid.imageUrl == null
                           ? Image.asset('assets/img7.png',
                               height: 160, width: 160)
-                          : CachedNetworkImage(
-                              imageUrl: vid.imageUrl!,
-                              fit: BoxFit.cover,
-                              height: 160,
-                              width: 160,
-                              fadeInCurve: Curves.bounceIn,
-                              fadeOutCurve: Curves.bounceOut,
-                              errorListener: (err) {
-                                pp('👿 ... image error: $err 👿');
-                              },
-                            ),
+                          : Stack(
+                              children: [
+                                CachedNetworkImage(
+                                  imageUrl: vid.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  height: 160,
+                                  width: 160,
+                                  fadeInCurve: Curves.bounceIn,
+                                  fadeOutCurve: Curves.bounceOut,
+                                  errorListener: (err) {
+                                    pp('👿 ... image error: $err 👿');
+                                  },
+                                ),
+                                vid.attributes == null
+                                    ? gapH32
+                                    : Positioned(
+                                        right: 4,
+                                        bottom: 4,
+                                        child:
+                                            Container(
+                                                color: Colors.black45,
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(4.0),
+                                                  child: Text('${vid.attributes!.duration}', style: myTextStyleTiny(context),),
+                                                )),
+                                      ),
+                              ],
+                            )
                     ],
                   ),
                 ),
